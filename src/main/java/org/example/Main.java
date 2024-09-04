@@ -49,7 +49,7 @@ public class Main {
             if (prices.size % 2 ==0)
                 System.out.println("Разница между медианой и средней ценой: " + Math.abs(priceSum / prices.size() - (prices.get(prices.size() / 2) + prices.get(prices.size() / 2 - 1))/2));
             else
-                System.out.println("Разница между медианой и средней ценой: "Math.abs(priceSum / prices.size() - prices.get(prices.size() / 2)));
+                System.out.println("Разница между медианой и средней ценой: " + Math.abs(priceSum / prices.size() - prices.get(prices.size() / 2)));
                 
         } catch (IOException e) {
             throw new RuntimeException(e);
