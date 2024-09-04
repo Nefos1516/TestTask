@@ -9,6 +9,7 @@ import java.io.IOException;
 import java.io.Reader;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 
 public class Main {
@@ -44,6 +45,7 @@ public class Main {
                 String s = String.format("Время перелета для оператора %s составляет %s", k, String.valueOf(v / 60 + 7).concat(" часов и " + v % 60 +" минут."));
                 System.out.println(s);
             });
+            Collections.sort(prices);
             System.out.println("Разница между медианой и средней ценой: " + Math.abs(priceSum / prices.size() - prices.get(prices.size() / 2)));
         } catch (IOException e) {
             throw new RuntimeException(e);
