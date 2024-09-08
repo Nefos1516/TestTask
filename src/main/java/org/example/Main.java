@@ -8,15 +8,17 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.io.Reader;
 import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
+import java.time.Duration;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeFormatterBuilder;
+import java.util.*;
 
 public class Main {
     public static void main(String[] args){
         int priceSum = 0;
         ArrayList<Integer> prices = new ArrayList<>();
-        HashMap<String, Integer> timeDiffForCarriers = new HashMap<>();
+        HashMap<String, Duration> timeDiffForCarriers = new HashMap<>();
         try (Reader reader = new FileReader(args[0], StandardCharsets.UTF_8)){
             JsonArray tickets = new Gson().fromJson(reader, JsonObject.class).getAsJsonArray("tickets");
             for (int i = 0; i < tickets.size(); i++)
@@ -27,22 +29,23 @@ public class Main {
                 if (origin.equals("VVO") && destination.equals("TLV"))
                 {
                     String str = ticket.get("carrier").getAsString();
-                    String[] arrivalTimes = ticket.get("arrival_time").getAsString().split(":");
-                    String[] departureTimes = ticket.get("departure_time").getAsString().split(":");
+                    DateTimeFormatterBuilder builder = new DateTimeFormatterBuilder().append(DateTimeFormatter.ofPattern("[dd.MM.yy HH:mm]" + "[dd.MM.yy H:mm]"));
+                    DateTimeFormatter format = builder.toFormatter();
+                    LocalDateTime departureTime = LocalDateTime.parse(ticket.get("departure_date").getAsString() + " " + ticket.get("departure_time").getAsString(), format);
+                    LocalDateTime arrivalTime = LocalDateTime.parse(ticket.get("arrival_date").getAsString() + " " + ticket.get("arrival_time").getAsString(), format);
                     int price = Integer.parseInt(ticket.get("price").getAsString());
                     priceSum += price;
                     prices.add(price);
-                    int timeDiff = (Integer.parseInt(arrivalTimes[0]) - Integer.parseInt(departureTimes[0])) * 60 + (Integer.parseInt(arrivalTimes[1]) - Integer.parseInt(departureTimes[1]));
+                    Duration timeDiff = Duration.between(departureTime, arrivalTime).plusHours(7);
                     if (!timeDiffForCarriers.containsKey(str))
                         timeDiffForCarriers.put(str, timeDiff);
-                    else if (timeDiffForCarriers.get(str) > timeDiff) {
+                    else if (timeDiff.compareTo(timeDiffForCarriers.get(str)) < 0)
                         timeDiffForCarriers.replace(str, timeDiff);
-                    }
                 }
             }
             timeDiffForCarriers.forEach((k, v) ->
             {
-                String s = String.format("Время перелета для оператора %s составляет %s", k, String.valueOf(v / 60 + 7).concat(" часов и " + v % 60 +" минут."));
+                String s = String.format("Время перелета для оператора %s составляет %s", k, v.toHours() + " часов и " + v.toMinutes() % 60 + " минут.");
                 System.out.println(s);
             });
             Collections.sort(prices);
